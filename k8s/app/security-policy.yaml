@@ -1,21 +1,9 @@
 ---
-# 1. Deny all traffic by default in production and staging namespaces
+# 1. Deny all traffic by default
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all
-  namespace: production
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: staging
 spec:
   podSelector: {}
   policyTypes:
@@ -27,7 +15,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns
-  namespace: production
 spec:
   podSelector: {}
   policyTypes:
@@ -43,12 +30,11 @@ spec:
     - protocol: TCP
       port: 53
 ---
-# 3. Allow Monitoring (Ingress from monitoring namespace)
+# 3. Allow Monitoring Ingress (Prometheus scraping)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-monitoring
-  namespace: production
+  name: allow-monitoring-ingress
 spec:
   podSelector:
     matchLabels:
@@ -67,13 +53,40 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-app-ingress
-  namespace: production
 spec:
   podSelector:
     matchLabels:
       app: podinfo
   ingress:
-  - from: [] # Allow from any for demo, or restrict to Ingress Controller if available
+  - from: [] # Allow from any for demo
     ports:
     - protocol: TCP
       port: 9898
+---
+# 5. Allow Egress to Monitoring (Tempo Traces & Loki)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-monitoring-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: podinfo
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+    ports:
+    - protocol: TCP
+      port: 3100 # Loki
+    - protocol: TCP
+      port: 3200 # Tempo API
+    - protocol: TCP
+      port: 14268 # Tempo Jaeger Thrift
+    - protocol: TCP
+      port: 4317 # Tempo OTLP gRPC
+    - protocol: TCP
+      port: 4318 # Tempo OTLP HTTP

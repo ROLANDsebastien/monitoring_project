@@ -7,6 +7,15 @@ prometheus:
     resources:
       limits: { memory: 1536Mi }
       requests: { cpu: 200m, memory: 512Mi }
+    # Discovery of ServiceMonitors across all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    # Discovery of PodMonitors across all namespaces
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorNamespaceSelector: {}
+    # Rule selection across all namespaces
+    ruleSelectorNilUsesHelmValues: false
+    ruleNamespaceSelector: {}
 
 # Activation de Loki pour l'agrégation de logs
 loki:
@@ -19,6 +28,8 @@ loki:
 
 promtail:
   enabled: true # Collecteur de logs automatique sur tous les pods
+  config:
+    lokiAddress: http://loki:3100/loki/api/v1/push
 
 grafana:
   adminPassword: prom-operator
@@ -51,7 +62,7 @@ grafana:
       uid: tempo
       type: tempo
       access: proxy
-      url: http://tempo:3100
+      url: http://tempo:3200
       version: 1
 
 nodeExporter: { enabled: true }

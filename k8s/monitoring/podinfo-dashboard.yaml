@@ -19,8 +19,8 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
           "targets": [
             {
-              "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (app)",
-              "legendFormat": "{{app}} - Requests/s"
+              "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (service, namespace)",
+              "legendFormat": "{{namespace}}/{{service}} - Requests/s"
             }
           ]
         },
@@ -30,8 +30,8 @@ data:
           "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
           "targets": [
             {
-              "expr": "sum(rate(http_request_duration_seconds_count{status=~\"5..\"}[1m])) by (app)",
-              "legendFormat": "Errors"
+              "expr": "sum(rate(http_request_duration_seconds_count{status=~\"5..\"}[1m])) by (service, namespace)",
+              "legendFormat": "{{namespace}}/{{service}} - Errors"
             }
           ]
         },
@@ -41,8 +41,8 @@ data:
           "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
           "targets": [
             {
-              "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, app))",
-              "legendFormat": "P99 Latency (seconds)"
+              "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, service, namespace))",
+              "legendFormat": "{{namespace}}/{{service}} - P99 Latency"
             }
           ]
         }

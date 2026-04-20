@@ -13,6 +13,7 @@ data:
         {
           "title": "Log Volume by Namespace",
           "type": "timeseries",
+          "datasource": "Loki",
           "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
           "targets": [
             {
@@ -24,6 +25,7 @@ data:
         {
           "title": "Live Log Stream",
           "type": "logs",
+          "datasource": "Loki",
           "gridPos": { "h": 12, "w": 24, "x": 0, "y": 8 },
           "targets": [
             {

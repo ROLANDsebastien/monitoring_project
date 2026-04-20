@@ -1,0 +1,51 @@
+tempo:
+  # Monolithic configuration for local dev
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+  metricsGenerator:
+    enabled: true
+    config:
+      storage:
+        path: /var/tempo/wal
+        remote_write:
+          - url: http://monitoring-kube-prometheus-prometheus:9090/api/v1/write
+
+  # Unified config for all components in one pod
+  ingester:
+    lifecycler:
+      ring:
+        replication_factor: 1
+  
+  # Ensure all ports are open and explicitly enabled
+  distributor:
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: "0.0.0.0:4318"
+          grpc:
+            endpoint: "0.0.0.0:4317"
+      jaeger:
+        protocols:
+          thrift_http:
+            endpoint: "0.0.0.0:14268"
+          thrift_compact:
+            endpoint: "0.0.0.0:6831"
+          thrift_binary:
+            endpoint: "0.0.0.0:6832"
+
+# Force single binary mode to avoid ring errors
+singleBinary:
+  enabled: true
+  replication_factor: 1
+
+# Resource management for small cluster
+resources:
+  limits: { memory: 512Mi }
+  requests: { cpu: 100m, memory: 128Mi }
