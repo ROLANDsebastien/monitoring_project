@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podinfo-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  podinfo.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "links": [],
+      "panels": [
+        {
+          "title": "Application Throughput (RPS)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (app)",
+              "legendFormat": "{{app}} - Requests/s"
+            }
+          ]
+        },
+        {
+          "title": "Error Rate (5xx)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_count{status=~\"5..\"}[1m])) by (app)",
+              "legendFormat": "Errors"
+            }
+          ]
+        },
+        {
+          "title": "Latency (P99)",
+          "type": "timeseries",
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, app))",
+              "legendFormat": "P99 Latency (seconds)"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["podinfo", "app"],
+      "templating": { "list": [] },
+      "time": { "from": "now-15m", "to": "now" },
+      "title": "Podinfo / Service Health",
+      "uid": "podinfo-health"
+    }

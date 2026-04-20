@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-traces-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  tempo-traces.json: |
+    {
+      "title": "Tempo / Trace Discovery",
+      "uid": "tempo-traces",
+      "panels": [
+        {
+          "title": "Search Traces",
+          "type": "trace-view",
+          "gridPos": { "h": 20, "w": 24, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "datasource": {
+                "type": "tempo",
+                "uid": "tempo"
+              },
+              "queryType": "traceId",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 38,
+      "style": "dark",
+      "time": { "from": "now-1h", "to": "now" }
+    }

@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: icinga2
+  labels:
+    app: icinga2
+spec:
+  ports:
+    - port: 5665
+      targetPort: 5665
+      name: api
+  selector:
+    app: icinga2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icinga2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icinga2
+  template:
+    metadata:
+      labels:
+        app: icinga2
+    spec:
+      hostname: icinga2
+      containers:
+        - name: icinga2
+          image: icinga/icinga2:latest
+          ports:
+            - containerPort: 5665
+          env:
+            - name: ICINGA2_FEATURE_MONITORING
+              value: "true"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "icinga2 api setup && icinga2 feature enable api && kill -HUP 1 || true",
+                  ]

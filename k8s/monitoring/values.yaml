@@ -1,0 +1,58 @@
+# Configuration - High Performance Management Hub
+# Optimized for 18GB RAM (Apple Silicon)
+
+prometheus:
+  prometheusSpec:
+    retention: 1d
+    resources:
+      limits: { memory: 1536Mi }
+      requests: { cpu: 200m, memory: 512Mi }
+
+# Activation de Loki pour l'agrégation de logs
+loki:
+  enabled: true
+  persistence:
+    enabled: false # Stockage en RAM/Temp pour la démo (plus rapide)
+  resources:
+    limits: { memory: 512Mi }
+    requests: { cpu: 100m, memory: 128Mi }
+
+promtail:
+  enabled: true # Collecteur de logs automatique sur tous les pods
+
+grafana:
+  adminPassword: prom-operator
+  resources:
+    limits: { memory: 512Mi }
+    requests: { cpu: 100m, memory: 128Mi }
+  
+  # Provisioning automatique des dashboards via ConfigMaps
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+  # Provisioning automatique des DataSources (Prometheus + Loki + Tempo)
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      version: 1
+      jsonData:
+        derivedFields:
+          - datasourceUid: tempo
+            matcherRegex: "traceID=(\\w+)"
+            name: TraceID
+            url: "${__value.raw}"
+    - name: Tempo
+      uid: tempo
+      type: tempo
+      access: proxy
+      url: http://tempo:3100
+      version: 1
+
+nodeExporter: { enabled: true }
+kubeStateMetrics: { enabled: true }
