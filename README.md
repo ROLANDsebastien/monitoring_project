@@ -7,43 +7,56 @@ This project provides a robust observability stack (Prometheus, Loki, Tempo, Gra
 ## Architecture Overview
 
 ```mermaid
-graph TD
-    subgraph "Local Cluster (Colima/k3s)"
+graph LR
+    subgraph "External Access"
+        User((User/Browser))
+        CI[DevSecOps CI]
+    end
+
+    subgraph "Local Kubernetes Cluster (Colima/k3s)"
         direction TB
-        subgraph "Namespace: production"
+        
+        subgraph "Production Namespace"
+            direction LR
             App[Podinfo App]
             SA[ServiceAccount]
             NP[Network Policies]
+            App --- SA
+            App --- NP
         end
 
-        subgraph "Namespace: monitoring"
-            Prom[Prometheus]
-            Loki[Loki]
-            Tempo[Tempo]
+        subgraph "Monitoring Namespace"
+            direction TB
+            subgraph "PLG Stack"
+                Prom[Prometheus]
+                Loki[Loki]
+                Tempo[Tempo]
+            end
             Graf[Grafana]
             Icinga[Icinga2]
+            
+            Prom --> Graf
+            Loki --> Graf
+            Tempo --> Graf
         end
     end
 
-    User((User/Browser)) -->|Port Forward| Graf
-    User -->|Port Forward| App
+    %% Flows
+    User -->|Port Forward: 9898| App
+    User -->|Port Forward: 3000| Graf
+    
+    CI -->|Lint & Scan| App
     
     App -->|Metrics| Prom
     App -->|Logs| Loki
     App -->|Traces| Tempo
     
-    Prom -.->|Alerts| Graf
-    Loki -.->|Logs| Graf
-    Tempo -.->|Traces| Graf
-    
-    Icinga -->|External Check| App
-    
-    subgraph "DevSecOps Pipeline"
-        Trivy[Trivy Scan]
-        KubeLinter[Kube-Linter]
-        Trivy -->|Audit| App
-        KubeLinter -->|Lint| App
-    end
+    Icinga -.->|External Check| App
+
+    %% Styles
+    style App fill:#f9f,stroke:#333,stroke-width:2px
+    style Graf fill:#3c7,stroke:#333,stroke-width:2px
+    style CI fill:#f66,stroke:#333,stroke-width:1px
 ```
 
 ## Features

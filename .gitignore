@@ -1,0 +1,20 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# Project Logs
+/tmp/*.log
+*.log
+
+# Local Environment
+.env
+.colima/
+.kube/
+
+# Load Testing
+/results/
+/screenshots/
+
+# Kubernetes
+/k8s/monitoring/charts/
+/k8s/monitoring/tmp/
