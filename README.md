@@ -1,7 +1,5 @@
 # EC Observability Hub
 
-![CI Status](https://github.com/votre-user/monitoring-project/actions/workflows/devsecops.yml/badge.svg)
-
 This project provides a robust observability stack (Prometheus, Loki, Tempo, Grafana, Icinga2, K6) running on a local Kubernetes cluster.
 
 ## Architecture Overview
@@ -78,7 +76,7 @@ Initialize the infrastructure and deploy the stack:
 make deploy
 ```
 
-## URLs d'Accès
+## Access URLs
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
@@ -89,18 +87,18 @@ make deploy
 | PodInfo App | http://localhost:9898 | - |
 | Icinga2 API | localhost:5665 | - |
 
-## Commandes Utiles
+## Useful Commands
 
 ```bash
-make deploy              # Déploiement complet
-make scan                # Scanner les vulnérabilités (Trivy)
-make access              # Ouvrir tous les port-forwards
-make ports              # Afficher les URLs
-make load-test          # Lancer les tests de charge
-make k6-web             # Interface web K6
-kubectl get pods -A       # Tous les pods
-kubectl top pods -n monitoring  # Métriques en temps réel
-colima status           # État du cluster
+make deploy              # Full deployment
+make scan                # Scan vulnerabilities (Trivy)
+make access              # Open all port-forwards
+make ports              # Show URLs
+make load-test          # Run load tests
+make k6-web             # K6 Web Interface
+kubectl get pods -A       # All pods
+kubectl top pods -n monitoring  # Real-time metrics
+colima status           # Cluster status
 ```
 
 ## Performance Validation

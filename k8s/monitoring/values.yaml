@@ -17,17 +17,17 @@ prometheus:
     ruleSelectorNilUsesHelmValues: false
     ruleNamespaceSelector: {}
 
-# Activation de Loki pour l'agrégation de logs
+# Activate Loki for log aggregation
 loki:
   enabled: true
   persistence:
-    enabled: false # Stockage en RAM/Temp pour la démo (plus rapide)
+    enabled: false # RAM/Temp storage for demo (faster)
   resources:
     limits: { memory: 512Mi }
     requests: { cpu: 100m, memory: 128Mi }
 
 promtail:
-  enabled: true # Collecteur de logs automatique sur tous les pods
+  enabled: true # Automatic log collector on all pods
   config:
     lokiAddress: http://loki:3100/loki/api/v1/push
 
@@ -37,7 +37,7 @@ grafana:
     limits: { memory: 512Mi }
     requests: { cpu: 100m, memory: 128Mi }
   
-  # Provisioning automatique des dashboards via ConfigMaps
+  # Automatic dashboard provisioning via ConfigMaps
   sidecar:
     dashboards:
       enabled: true
@@ -45,7 +45,7 @@ grafana:
       labelValue: "1"
       searchNamespace: ALL
 
-  # Provisioning automatique des DataSources (Prometheus + Loki + Tempo)
+  # Automatic DataSources provisioning (Prometheus + Loki + Tempo)
   additionalDataSources:
     - name: Loki
       type: loki
