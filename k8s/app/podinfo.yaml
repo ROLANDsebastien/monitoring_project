@@ -15,11 +15,35 @@ spec:
         app: podinfo
     spec:
       serviceAccountName: podinfo-sa
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: podinfo
+            topologyKey: "kubernetes.io/hostname"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: podinfo
-          image: stefanprodan/podinfo:latest
+          image: stefanprodan/podinfo:6.3.5
           imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command: ["./podinfo", "--otel-service-name=podinfo"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           ports:
             - name: http
               containerPort: 9898

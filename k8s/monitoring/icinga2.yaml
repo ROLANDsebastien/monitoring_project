@@ -27,9 +27,26 @@ spec:
         app: icinga2
     spec:
       hostname: icinga2
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: icinga2
-          image: icinga/icinga2:latest
+          image: icinga/icinga2:2.14.2
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           ports:
             - containerPort: 5665
           env:
