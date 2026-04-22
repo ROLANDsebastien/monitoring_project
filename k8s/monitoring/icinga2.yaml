@@ -28,18 +28,14 @@ spec:
     spec:
       hostname: icinga2
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        fsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 0
       containers:
         - name: icinga2
           image: icinga/icinga2:2.14.2
           securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: true
           resources:
             requests:
               cpu: 200m
@@ -52,12 +48,9 @@ spec:
           env:
             - name: ICINGA2_FEATURE_MONITORING
               value: "true"
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  [
-                    "/bin/sh",
-                    "-c",
-                    "icinga2 api setup && icinga2 feature enable api && kill -HUP 1 || true",
-                  ]
+          volumeMounts:
+            - name: run-dir
+              mountPath: /run
+      volumes:
+        - name: run-dir
+          emptyDir: {}

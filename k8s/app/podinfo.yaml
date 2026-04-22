@@ -15,13 +15,13 @@ spec:
         app: podinfo
     spec:
       serviceAccountName: podinfo-sa
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                app: podinfo
-            topologyKey: "kubernetes.io/hostname"
+      # affinity:
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #     - labelSelector:
+      #         matchLabels:
+      #           app: podinfo
+      #       topologyKey: "kubernetes.io/hostname"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -52,7 +52,9 @@ spec:
             - name: PODINFO_UI_COLOR
               value: "#345ecf"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://tempo.monitoring.svc.cluster.local:4317"
+              value: "http://otel-collector.monitoring.svc:4317"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
 ---
 apiVersion: v1
 kind: Service

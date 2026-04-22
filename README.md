@@ -1,6 +1,6 @@
-# EC Observability Hub
+# EC Observability Hub (Modernized with OpenTelemetry & SNMP)
 
-This project provides a robust observability stack (Prometheus, Loki, Tempo, Grafana, Icinga2, K6) running on a local Kubernetes cluster.
+This project provides a professional-grade observability stack (Prometheus, Loki, Tempo, OpenTelemetry, Grafana, Icinga2, K6) optimized for enterprise environments like the European Commission.
 
 ## Architecture Overview
 
@@ -8,7 +8,7 @@ This project provides a robust observability stack (Prometheus, Loki, Tempo, Gra
 graph LR
     subgraph "External Access"
         User((User/Browser))
-        CI[DevSecOps CI]
+        SNMP_Dev[Network Devices]
     end
 
     subgraph "Local Kubernetes Cluster (Colima/k3s)"
@@ -17,22 +17,24 @@ graph LR
         subgraph "Production Namespace"
             direction LR
             App[Podinfo App]
-            SA[ServiceAccount]
-            NP[Network Policies]
-            App --- SA
-            App --- NP
         end
 
         subgraph "Monitoring Namespace"
             direction TB
-            subgraph "PLG Stack"
+            subgraph "LGTM + OTel Stack"
+                OTel[OTel Collector]
                 Prom[Prometheus]
                 Loki[Loki]
                 Tempo[Tempo]
+                Telegraf[Telegraf SNMP]
             end
             Graf[Grafana]
             Icinga[Icinga2]
             
+            OTel --> Prom
+            OTel --> Loki
+            OTel --> Tempo
+            Telegraf -->|SNMP Traps| OTel
             Prom --> Graf
             Loki --> Graf
             Tempo --> Graf
@@ -40,33 +42,28 @@ graph LR
     end
 
     %% Flows
-    User -->|Port Forward: 9898| App
     User -->|Port Forward: 3000| Graf
+    SNMP_Dev -->|UDP:162| Telegraf
     
-    CI -->|Lint & Scan| App
-    
-    App -->|Metrics| Prom
-    App -->|Logs| Loki
-    App -->|Traces| Tempo
+    App -->|OTLP Traces/Metrics| OTel
     
     Icinga -.->|External Check| App
 
     %% Styles
     style App fill:#f9f,stroke:#333,stroke-width:2px
+    style OTel fill:#f80,stroke:#333,stroke-width:2px
+    style Telegraf fill:#0cf,stroke:#333,stroke-width:2px
     style Graf fill:#3c7,stroke:#333,stroke-width:2px
-    style CI fill:#f66,stroke:#333,stroke-width:1px
 ```
 
 ## Features
 
-- **Automated Infrastructure:** One-click deployment with Colima, k3s, and Helm.
-- **Service Monitoring:** Custom Grafana dashboards (Cluster Overview, PodInfo).
-- **Log Aggregation:** Loki for centralized log management.
-- **Distributed Tracing:** Tempo for end-to-end request tracing and performance debugging.
-- **External Monitoring:** Icinga2 for host/service checks.
-- **Load Testing:** K6 with web UI for performance validation.
-- **Resilience:** Liveness and Readiness probes for automated self-healing.
-- **Auto-scaling:** Horizontal Pod Autoscaler (HPA) to handle traffic spikes.
+- **Multi-Platform Support:** Automatically detects OS (**macOS / Linux**) and Architecture (**ARM64 / Intel**) for optimized cluster provisioning via Colima.
+- **Vendor-Neutral Observability:** Built on **OpenTelemetry (OTel)**, allowing seamless switching between backends (Open-Source or Proprietary like Dynatrace).
+- **Network Awareness (SNMP):** Integrated **SNMP Trap receiver** (via Telegraf) to capture asynchronous hardware events.
+- **Unified Pipeline:** A single OTel Collector handles metrics, logs, and traces, ensuring data consistency and correlation.
+- **Automated Deployment:** One-click `make deploy` that provisions the cluster, installs the stack, establishes port-forwards, and opens dashboards.
+- **Security First:** Zero-trust network policies, hardened pod security contexts, and automated Trivy scans.
 
 ## Getting Started
 
@@ -76,6 +73,17 @@ Initialize the infrastructure and deploy the stack:
 make deploy
 ```
 
+*The script will automatically handle dependency checks, cluster creation (detecting your CPU architecture), and post-deployment access.*
+
+## Testing SNMP Traps
+
+To demonstrate how the system handles hardware/network events (the "SNMP Trap" feature used at the EC), run:
+
+```bash
+make send-test-trap
+```
+Then, check the **Loki/Grafana logs** to see the trap event being captured and routed through the OTel pipeline.
+
 ## Access URLs
 
 | Service | URL | Credentials |
@@ -83,9 +91,10 @@ make deploy
 | Grafana | http://localhost:3000 | admin / prom-operator |
 | Prometheus | http://localhost:9090 | - |
 | Loki | http://localhost:3100 | - |
-| K6 Web UI | http://localhost:6565 | - |
 | PodInfo App | http://localhost:9898 | - |
 | Icinga2 API | localhost:5665 | - |
+| SNMP Receiver | telegraf-snmp:162 (UDP) | public |
+
 
 ## Useful Commands
 

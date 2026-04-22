@@ -16,6 +16,10 @@ tempo:
         remote_write:
           - url: http://monitoring-kube-prometheus-prometheus:9090/api/v1/write
 
+  # Enable search for trace discovery
+  search:
+    enabled: true
+
   # Unified config for all components in one pod
   ingester:
     lifecycler:

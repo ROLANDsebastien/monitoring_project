@@ -1,0 +1,6 @@
+loki:
+  enabled: true
+promtail:
+  enabled: true
+grafana:
+  enabled: false # On gère la datasource nous-mêmes dans tempo-fix.yaml pour éviter les conflits

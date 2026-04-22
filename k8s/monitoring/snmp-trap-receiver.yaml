@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-snmp-conf
+  namespace: monitoring
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "10s"
+      round_interval = true
+      metric_batch_size = 1000
+      metric_buffer_limit = 10000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "0s"
+      precision = ""
+      hostname = "telegraf-snmp"
+      omit_hostname = false
+
+    [[inputs.snmp_trap]]
+      service_address = "udp://:162"
+
+    [[outputs.loki]]
+      url = "http://loki:3100/loki/api/v1/push"
+      timeout = "5s"
+      [outputs.loki.labels]
+        source = "snmp-trap"
+        job = "telegraf-snmp"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf-snmp
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegraf-snmp
+  template:
+    metadata:
+      labels:
+        app: telegraf-snmp
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+      containers:
+        - name: telegraf
+          image: telegraf:1.30
+          securityContext:
+            capabilities:
+              add: ["NET_BIND_SERVICE"]
+          ports:
+            - containerPort: 162
+              name: snmp-trap
+              protocol: UDP
+          volumeMounts:
+            - name: telegraf-config-vol
+              mountPath: /etc/telegraf/telegraf.conf
+              subPath: telegraf.conf
+      volumes:
+        - name: telegraf-config-vol
+          configMap:
+            name: telegraf-snmp-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telegraf-snmp
+  namespace: monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - name: snmp-trap
+      port: 162
+      targetPort: 162
+      protocol: UDP
+  selector:
+    app: telegraf-snmp
